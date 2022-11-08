@@ -7,8 +7,19 @@
 
 //mpiexec -n 4 MatrixMultiply.exe
 
-#define M 4
-#define N 4
+
+#define M 5
+#define N 5
+void TapeAlgorithm(int &i, int &j, int &k, int &tem, int*&Matrix_one, int*&Matrix_two, int*&result_Matrix) {
+	for (j = 0; j < M; j++) {
+		tem = 0;
+		for (k = 0; k < N; k++)
+			tem += Matrix_one[i * M + k] * Matrix_two[j * M + k];
+		result_Matrix[i * M + j] = tem;
+	}
+}
+
+
 int main(int argc, char** argv)
 {
 	int my_rank;/*My process rank*/
@@ -76,12 +87,7 @@ int main(int argc, char** argv)
 		MPI_Bcast(Matrix_two, M * N, MPI_INT, 0, MPI_COMM_WORLD);
 		//расчетlocalрезультат
 		for (i = 0; i < local_M; i++)
-			for (j = 0; j < M; j++) {
-				tem = 0;
-				for (k = 0; k < N; k++)
-					tem += local_Matrix_one[i * M + k] * Matrix_two[j * M + k];
-				local_result[i * M + j] = tem;
-			}
+			TapeAlgorithm(i, j, k, tem, local_Matrix_one, Matrix_two, local_result);
 		free(local_Matrix_one);
 		result_Matrix = (int*)malloc(M * N * sizeof(int));
 		//Сбор результатов
@@ -90,12 +96,7 @@ int main(int argc, char** argv)
 		int rest = M % comm_sz;
 		if (rest != 0)
 			for (i = M - rest - 1; i < M; i++)
-				for (j = 0; j < M; j++) {
-					tem = 0;
-					for (k = 0; k < N; k++)
-						tem += Matrix_one[i * M + k] * Matrix_two[j * M + k];
-					result_Matrix[i * M + j] = tem;
-				}
+				TapeAlgorithm(i, j, k, tem, Matrix_one, Matrix_two, result_Matrix);
 		finish = MPI_Wtime();
 		free(Matrix_one);
 		free(Matrix_two);
@@ -124,12 +125,7 @@ int main(int argc, char** argv)
 		MPI_Bcast(Matrix_two, M * N, MPI_INT, 0, MPI_COMM_WORLD);
 		//расчетlocalрезультат
 		for (i = 0; i < local_M; i++)
-			for (j = 0; j < M; j++) {
-				tem = 0;
-				for (k = 0; k < N; k++)
-					tem += local_Matrix_one[i * M + k] * Matrix_two[j * M + k];
-				local_result[i * M + j] = tem;
-			}
+			TapeAlgorithm(i, j, k, tem, local_Matrix_one, Matrix_two, local_result);
 		free(local_Matrix_one);
 		free(Matrix_two);
 		//Сбор результатов
